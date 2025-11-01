@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+instance/
+.env
+
+# Database
+*.db
+*.sqlite3
+
+# Flask cache
+*.log
+
+# Node & frontend builds (if used later)
+node_modules/
+dist/
+build/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# VS Code settings
+.vscode/
