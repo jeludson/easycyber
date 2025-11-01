@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyCyber | Portfolio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <header class="hero">
+    <h1>🚀 Our Portfolio</h1>
+    <p>Take a look at some glowing projects made by <span class="neon">EasyCyber</span>.</p>
+  </header>
+
+  <nav class="nav-bar">
+    <a href="/">Home</a>
+    <a href="/services">Services</a>
+    <a href="/portfolio" class="active">Portfolio</a>
+    <a href="/contact">Contact</a>
+  </nav>
+
+  <section class="portfolio">
+    <div class="project">
+      <img src="{{ url_for('static', filename='images/project1.jpg') }}" alt="Project 1">
+      <h3>GlowMart</h3>
+      <p>A futuristic e-commerce store for local businesses.</p>
+    </div>
+    <div class="project">
+      <img src="{{ url_for('static', filename='images/project2.jpg') }}" alt="Project 2">
+      <h3>NeonPortfolio</h3>
+      <p>Personal portfolio design for creative developers.</p>
+    </div>
+    <div class="project">
+      <img src="{{ url_for('static', filename='images/project3.jpg') }}" alt="Project 3">
+      <h3>CityLights</h3>
+      <p>Website for a startup that lights up smart cities.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 EasyCyber | All rights reserved</p>
+  </footer>
+</body>
+</html>
