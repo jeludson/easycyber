@@ -1,62 +1,34 @@
-import os
-import sqlite3
 from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
-import urllib.parse
-import psycopg2
+import sqlite3
+import os
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
-CORS(app)  # in production restrict origins for safety
+app = Flask(__name__)
 
-# ---------- Database helper ----------
-DATABASE_URL = os.environ.get("DATABASE_URL")  # Render will provide this (Postgres)
-LOCAL_DB = "database.db"
+DB_PATH = "database.db"
 
-def init_sqlite():
-    conn = sqlite3.connect(LOCAL_DB)
-    cur = conn.cursor()
-    cur.execute('''CREATE TABLE IF NOT EXISTS messages (
-                      id INTEGER PRIMARY KEY AUTOINCREMENT,
-                      name TEXT,
-                      email TEXT,
-                      message TEXT,
-                      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                   )''')
-    conn.commit()
-    conn.close()
-
-def save_message_sqlite(name, email, message):
-    conn = sqlite3.connect(LOCAL_DB)
-    cur = conn.cursor()
-    cur.execute("INSERT INTO messages (name, email, message) VALUES (?, ?, ?)", (name, email, message))
-    conn.commit()
-    conn.close()
-
-def save_message_postgres(name, email, message):
-    # psycopg2 accepts a DATABASE_URL string
-    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-    cur = conn.cursor()
-    cur.execute('''
+# ---------- Ensure DB & Table Exist ----------
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""
         CREATE TABLE IF NOT EXISTS messages (
-            id SERIAL PRIMARY KEY,
-            name TEXT,
-            email TEXT,
-            message TEXT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            message TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    ''')
-    cur.execute("INSERT INTO messages (name, email, message) VALUES (%s, %s, %s)", (name, email, message))
+    """)
     conn.commit()
-    cur.close()
     conn.close()
 
-# Initialize local DB on start (if using sqlite)
-if not DATABASE_URL:
-    init_sqlite()
+# Call it at startup
+init_db()
 
-# ---------- Routes ----------
+
+# ---------- Page Routes ----------
 @app.route('/')
-def home():
+def index():
     return render_template('index.html')
 
 @app.route('/services')
@@ -67,37 +39,35 @@ def services():
 def portfolio():
     return render_template('portfolio.html')
 
-@app.route('/contact', methods=['GET'])
-def contact_get():
+@app.route('/contact')
+def contact():
     return render_template('contact.html')
 
-# API endpoint for POST (AJAX from frontend)
+
+# ---------- API Route for Contact Form ----------
 @app.route('/api/contact', methods=['POST'])
 def api_contact():
-    data = request.get_json() or request.form
-    name = data.get('name')
-    email = data.get('email')
-    message = data.get('message')
-
-    if not name or not email or not message:
-        return jsonify({'success': False, 'error': 'Missing fields'}), 400
-
     try:
-        if DATABASE_URL:
-            save_message_postgres(name, email, message)
-        else:
-            save_message_sqlite(name, email, message)
-        return jsonify({'success': True, 'message': 'Saved'})
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        message = data.get('message')
+
+        if not (name and email and message):
+            return jsonify({'success': False, 'error': 'All fields required'}), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("INSERT INTO messages (name, email, message) VALUES (?, ?, ?)", (name, email, message))
+        conn.commit()
+        conn.close()
+
+        return jsonify({'success': True})
     except Exception as e:
+        import traceback
+        print("❌ ERROR:", traceback.format_exc())
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# simple health check
-@app.route('/health')
-def health():
-    return jsonify({'status':'ok'})
 
 if __name__ == '__main__':
-    # dev mode: load .env if present
-    from dotenv import load_dotenv
-    load_dotenv()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True)
