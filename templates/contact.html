@@ -1,37 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EasyCyber | Contact</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(ellipse at center, #0a0a0f, #000);
+      color: #fff;
+      text-align: center;
+      padding: 50px;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      color: #00eaff;
+      text-shadow: 0 0 15px #00eaff, 0 0 25px #00eaff;
+      margin-bottom: 30px;
+      animation: glowTitle 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glowTitle {
+      from { text-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff; }
+      to { text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff; }
+    }
+
+    form {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid #00ffff55;
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      margin: 0 auto;
+      border-radius: 15px;
+      box-shadow: 0 0 30px #00ffff33;
+      backdrop-filter: blur(5px);
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    input, textarea {
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 16px;
+      outline: none;
+      transition: box-shadow 0.3s ease, transform 0.2s ease;
+    }
+
+    input:focus, textarea:focus {
+      box-shadow: 0 0 10px #00ffff;
+      transform: scale(1.02);
+    }
+
+    .btn-glow {
+      background: linear-gradient(90deg, #00eaff, #0088ff);
+      border: none;
+      color: white;
+      padding: 12px 25px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 20px #00ffff88;
+    }
+
+    .btn-glow:hover {
+      background: linear-gradient(90deg, #00ffff, #00aaff);
+      box-shadow: 0 0 25px #00ffff, 0 0 50px #00ffff;
+      transform: scale(1.05);
+    }
+
+    /* Sending animation */
+    .sending {
+      pointer-events: none;
+      background: linear-gradient(90deg, #00aaff, #00ffff);
+      box-shadow: 0 0 25px #00ffff;
+      animation: pulse 1.5s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); opacity: 0.9; }
+      to { transform: scale(1.05); opacity: 1; }
+    }
+  </style>
 </head>
 <body>
-  <div class="glow-bg"></div>
 
-  <header class="hero">
-    <h1>📩 Contact Us</h1>
-    <p>Let’s create something <span class="neon">brilliant</span> together.</p>
-  </header>
+  <h1>💬 Contact Us</h1>
 
-  <nav class="nav-bar">
-    <a href="/">Home</a>
-    <a href="/services">Services</a>
-    <a href="/portfolio">Portfolio</a>
-    <a href="/contact" class="active">Contact</a>
-  </nav>
+  <form id="contactForm">
+    <input type="text" name="name" placeholder="Your Name" required>
+    <input type="email" name="email" placeholder="Your Email" required>
+    <textarea name="message" placeholder="Your Message" rows="5" required></textarea>
+    <button type="submit" class="btn-glow">Send Message</button>
+  </form>
 
-  <section class="contact-form">
-    <form action="/contact" method="POST">
-      <input type="text" name="name" placeholder="Your Name" required>
-      <input type="email" name="email" placeholder="Your Email" required>
-      <textarea name="message" placeholder="Your Message" rows="5" required></textarea>
-      <button type="submit" class="btn-glow">Send Message</button>
-    </form>
-  </section>
+  <script>
+  const form = document.getElementById("contactForm");
+  const button = form.querySelector(".btn-glow");
 
-  <footer>
-    <p>© 2025 EasyCyber | Designed by Ven 💜</p>
-  </footer>
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Add smooth sending animation
+    button.textContent = "✨ Sending...";
+    button.classList.add("sending");
+
+    const data = {
+      name: form.name.value,
+      email: form.email.value,
+      message: form.message.value
+    };
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        button.textContent = "✅ Sent!";
+        button.style.background = "linear-gradient(90deg, #00ff88, #00ffaa)";
+        form.reset();
+      } else {
+        button.textContent = "❌ Failed";
+        button.style.background = "linear-gradient(90deg, #ff4444, #ff8888)";
+      }
+    } catch (err) {
+      button.textContent = "⚠️ Error!";
+      button.style.background = "linear-gradient(90deg, #ff4444, #ff8888)";
+    }
+
+    // Reset button after 2 seconds
+    setTimeout(() => {
+      button.textContent = "Send Message";
+      button.classList.remove("sending");
+      button.style.background = "";
+    }, 2000);
+  });
+  </script>
+
 </body>
 </html>
+
